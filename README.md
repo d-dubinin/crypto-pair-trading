@@ -32,7 +32,8 @@ The strategy involves identifying and trading mean-reverting crypto pairs based 
 3. **Rolling Spread & Stationarity Check**  
    - A rolling spread is constructed for each selected pair.
    - The **Augmented Dickey-Fuller (ADF) test** is applied to check for mean-reversion.
-   - Pairs with **ADF p-value < 0.05** are considered stationary and tradable.
+   - Pairs yielding an **ADF p‑value < 0.05** are flagged for further inspection
+   - The selected pairs are visually inspected to assess the behavior and stability of their spreads, confirming their suitability for trading.
 
 4. **Uniqueness Constraint**  
    - To avoid overlapping exposure, if a coin appears in multiple valid pairs, only the pair with the **lowest ADF statistic** is selected.
