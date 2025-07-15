@@ -56,7 +56,7 @@ The strategy involves identifying and trading mean-reverting crypto pairs based 
     
 ![Backtest Plot - Period 1](period_2.png)
 
-## Live trading results (Position is Still Opened):
+## Live trading results (Position closed on 15.07.25):
 - **Traded Pairs**:  
   - **ETH / UNI**
 ![Spread](plots/spread.png)
