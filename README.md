@@ -47,14 +47,14 @@ The strategy involves identifying and trading mean-reverting crypto pairs based 
   - **BTC / DOT**  
   - **AAVE / UNI**
  
-![Backtest Plot - Period 1](period_1.png)
+![Backtest Plot - Period 1](backtests/period_1.png)
 
 ### Period 2 (2024-01-01 to 2025-01-01)
 - **Traded Pairs**:  
   - **NEAR / ADA**  
   - **VET / DOT**
     
-![Backtest Plot - Period 1](period_2.png)
+![Backtest Plot - Period 1](backtests/period_2.png)
 
 ## Live trading results:
 - **Traded Pairs**:  
