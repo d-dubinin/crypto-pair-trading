@@ -8,6 +8,47 @@ from itertools import combinations
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
 
+def compute_turnover(port):
+    to = (port.fillna(0)-port.shift().fillna(0)).abs().sum(1)   
+    return to
+
+def spread_formation(in_sample_df: pd.DataFrame,pairs,window=90):
+
+    data_dict = {}  # Dictionary to store calculated spread, centered spread, and beta for each pair
+    for pair in pairs:  # Loop over each pair of symbols
+
+        symbol_i = pair[0]  # First symbol in the pair
+        symbol_j = pair[1]  # Second symbol in the pair
+
+        px_i = in_sample_df[symbol_i]  # Price series of symbol_i
+        px_j = in_sample_df[symbol_j]  # Price series of symbol_j
+
+        log_px_i = np.log(px_i)  # Log-price of symbol_i
+        log_px_j = np.log(px_j)  # Log-price of symbol_j
+
+        # Rolling covariance and variance to compute rolling beta
+        rolling_cov = log_px_i.rolling(window=window).cov(log_px_j)
+        rolling_var = log_px_i.rolling(window=window).var()
+
+        beta = rolling_cov / rolling_var  # Rolling beta (slope of linear relationship)
+        alpha = log_px_j.rolling(window=window).mean() - beta * log_px_i.rolling(window=window).mean()  # Rolling alpha (intercept)
+
+        # Calculate spread: difference between log_px_i and the linear combination of alpha and beta * log_px_j
+        spread = log_px_i - (alpha + beta * log_px_j)
+
+        # Rolling mean of spread
+        spread_mean = spread.rolling(window=window).mean()
+        centered_spread = (spread - spread_mean)  # Centered spread
+
+        # Store the calculated series in the dictionary with tuple keys
+        data_dict[(tuple(pair), 'spread')] = spread
+        data_dict[(tuple(pair), 'centered_spread')] = centered_spread
+        data_dict[(tuple(pair), 'beta')] = beta
+
+    data = pd.DataFrame(data_dict)  # Create a DataFrame from the dictionary
+
+    return data  # Return the resulting DataFrame
+
 def drawdown_series(rets_series):
     running_max = rets_series.cummax()
     drawdown = rets_series - running_max
@@ -147,55 +188,14 @@ def cointegration (in_sample_df, threshold=0.05):
 
     return new_pairs, df
 
-def generate_signals(in_sample_df: pd.DataFrame,pairs,window=90):
-
-    data_dict = {}  # Dictionary to store calculated spread, centered spread, and beta for each pair
-    for pair in pairs:  # Loop over each pair of symbols
-
-        symbol_i = pair[0]  # First symbol in the pair
-        symbol_j = pair[1]  # Second symbol in the pair
-
-        px_i = in_sample_df[symbol_i]  # Price series of symbol_i
-        px_j = in_sample_df[symbol_j]  # Price series of symbol_j
-
-        log_px_i = np.log(px_i)  # Log-price of symbol_i
-        log_px_j = np.log(px_j)  # Log-price of symbol_j
-
-        # Rolling covariance and variance to compute rolling beta
-        rolling_cov = log_px_i.rolling(window=window).cov(log_px_j)
-        rolling_var = log_px_i.rolling(window=window).var()
-
-        beta = rolling_cov / rolling_var  # Rolling beta (slope of linear relationship)
-        alpha = log_px_j.rolling(window=window).mean() - beta * log_px_i.rolling(window=window).mean()  # Rolling alpha (intercept)
-
-        # Calculate spread: difference between log_px_i and the linear combination of alpha and beta * log_px_j
-        spread = log_px_i - (alpha + beta * log_px_j)
-
-        # Rolling mean of spread
-        spread_mean = spread.rolling(window=window).mean()
-        centered_spread = (spread - spread_mean)  # Centered spread
-
-        # Store the calculated series in the dictionary with tuple keys
-        data_dict[(tuple(pair), 'spread')] = spread
-        data_dict[(tuple(pair), 'centered_spread')] = centered_spread
-        data_dict[(tuple(pair), 'beta')] = beta
-
-    data = pd.DataFrame(data_dict)  # Create a DataFrame from the dictionary
-
-    return data  # Return the resulting DataFrame
-
-def generate_weights(signals_df, prices, threshold=0.5):
+def generate_weights(signals_df,inst, threshold=0.5):
     # Initialize a DataFrame with the same index and columns as crypto_px, filled with NaN
-    #signals_df = generate_signals(df, pairs, window=90)
-    #z_scores = signals_df[(tuple(pair), 'z_score')]
-    #fast_sma = z_scores.rolling(8).mean()
-    #slow_sma = z_scores.rolling(16).mean()
-    #asset_i = pair[0]
-    #asset_j = pair[1]
-    #eps = 1e-4
+
+    nb_trades = 0
     pairs = signals_df.columns.get_level_values(0).unique().tolist()
 
-    pos = pd.DataFrame(index=signals_df.index, columns=prices.columns,dtype=float)
+
+    pos = pd.DataFrame(index=signals_df.index, columns=inst,dtype=float)
 
     tickers = [ticker for pair in pairs for ticker in pair]
    
@@ -206,26 +206,33 @@ def generate_weights(signals_df, prices, threshold=0.5):
         asset_j = pair[1]
         betas = signals_df[(tuple(pair), 'beta')]
         # If negative beta, replace by recent positive
-        betas[betas<=0] = np.nan
-        betas.ffill(inplace=True)
-        z_scores = signals_df[(tuple(pair), 'z_score')]
+        #betas[betas<=0] = np.nan
+        #betas.ffill(inplace=True)
+        z_scores = signals_df[(tuple(pair), 'centered_spread')]
         fast_sma = z_scores.rolling(8).mean()
         slow_sma = z_scores.rolling(16).mean()
+        #std_i = signals_df[(tuple(pair), 'std_i')]
+        #std_j = signals_df[(tuple(pair), 'std_j')]
+        diff = fast_sma.diff()
 
         short_pos = 0
         long_pos = 0
 
         long_trigger = False
         short_trigger = False
+
+        
         for ind in pos.index:
 
 
             if long_pos == 1:
-                pos.loc[ind, asset_j] = -betas.loc[ind]
-                pos.loc[ind,asset_i] = 1
+                pos.loc[ind, asset_j] = -betas.loc[ind]#*(1/std_j.loc[ind])
+                pos.loc[ind,asset_i] = 1#*(1/std_i.loc[ind])
+                nb_trades = nb_trades+1
             elif short_pos == 1:
-                pos.loc[ind, asset_j] = betas.loc[ind]
-                pos.loc[ind,asset_i] = -1
+                pos.loc[ind, asset_j] = betas.loc[ind]#*(1/std_j.loc[ind])
+                pos.loc[ind,asset_i] = -1#*(1/std_i.loc[ind])
+                nb_trades = nb_trades+1
 
             if (z_scores.loc[ind] > 0) and (z_scores.shift().loc[ind]<= 0):
                 short_trigger = True
@@ -236,14 +243,16 @@ def generate_weights(signals_df, prices, threshold=0.5):
                 short_trigger = False
 
             if (short_trigger == True) and (fast_sma.loc[ind]<slow_sma.loc[ind]) and (short_pos == 0) and (np.abs(z_scores.loc[ind]) > threshold):
-                pos.loc[ind,asset_i] = -1 
-                pos.loc[ind, asset_j] = betas.loc[ind] 
+            #if (short_trigger == True) and (diff.loc[ind]<0) and (short_pos == 0) and (np.abs(z_scores.loc[ind]) > threshold):
+                pos.loc[ind,asset_i] = -1 #*(1/std_i.loc[ind])
+                pos.loc[ind, asset_j] = betas.loc[ind] #*(1/std_j.loc[ind])
                 short_pos = 1
                 short_trigger = False
 
             elif (long_trigger == True) and (fast_sma.loc[ind]>slow_sma.loc[ind]) and (long_pos == 0) and (np.abs(z_scores.loc[ind]) > threshold):
-                pos.loc[ind, asset_i] = 1 
-                pos.loc[ind, asset_j] = -betas.loc[ind]
+            #elif (long_trigger == True) and (diff.loc[ind]>0) and (long_pos == 0) and (np.abs(z_scores.loc[ind]) > threshold):
+                pos.loc[ind, asset_i] = 1 #*(1/std_i.loc[ind])
+                pos.loc[ind, asset_j] = -betas.loc[ind]#*(1/std_j.loc[ind])
                 long_pos = 1
                 long_trigger = False
 
@@ -251,6 +260,7 @@ def generate_weights(signals_df, prices, threshold=0.5):
                 pos.loc[ind, asset_i] = 0 
                 pos.loc[ind, asset_j] = 0
                 short_pos = 0
+                nb_trades = nb_trades+1
             
 
 
@@ -258,12 +268,18 @@ def generate_weights(signals_df, prices, threshold=0.5):
                 pos.loc[ind, asset_j] = 0  
                 pos.loc[ind, asset_i] = 0
                 long_pos = 0
+                nb_trades = nb_trades+1
+                
+        #pos[[asset_i,asset_j]] = pos[[asset_i,asset_j]].divide(pos[[asset_i,asset_j]].abs().sum(axis=1), axis=0)/2
+            
 
     # Forward-fill missing values
     pos = pos.ffill()
     # Normalization to get fully invested portfolio and divide by number of pairs to not be concerated if only one pair is active
     pos_final = (pos.divide(pos.abs().sum(axis=1), axis=0).fillna(0))
-    return pos_final, pairs
+    print(nb_trades)
+    return pos_final
+
 
 def filter(df,tickers):
     keep_indices = []
