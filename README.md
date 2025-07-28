@@ -58,9 +58,9 @@ The strategy involves identifying and trading mean-reverting crypto pairs based 
 
 ## Live trading results:
 - **Traded Pairs**:  
-  - **ETH / UNI (14.06.2025 - 15.07.25)**
+  - **ETH / UNI (14.06.2025 - 15.07.25 - closed as reverted)**
 ![Spread](plots/spread_eth_uni.png)
-   - **AVAX / DOT (17.06.2025 - still opened position)**
+   - **AVAX / DOT (17.06.2025 - 28.07.2025 - closed as cointegration broke)**
 ![Spread](plots/spread_avax_dot.png)
 
 ![PnL](plots/PnL.png)
