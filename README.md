@@ -54,6 +54,13 @@ Upon entering a trade, beta and alpha parameters are fixed for the trade duratio
   - **ETH / UNI (14.06.2025 - 15.07.25 - closed as reverted)**
 
 ![PnL](plots/pnl_plot.png)
+
+## TODO:
+
+1. Develop a pair selection strategy based on stationarity tests. Plan to apply the Augmented Dickey-Fuller (ADF) test and Phillips-Perron (PP) test, with a focus on PP due to its robustness in handling heteroskedasticity and autocorrelation in the error terms—common issues in financial time series. This approach allows to get more robust and accurate inference.
+
+2. Systematize the strategy for deployment on the Binance exchange to enable automatic trade execution.
+   
   
 
    
