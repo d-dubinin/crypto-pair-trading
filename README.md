@@ -18,8 +18,8 @@ This repository contains a Python implementation for backtesting a pairs trading
 
 ## Files
 
-1. functions.py: Contains functions to fetch price data from an exchange (e.g Binance), signal generation and backtesting.
-2. Example notebook for running backtest and plotting with sample data.
+1. **functions.py**: Contains functions to fetch price data from an exchange (e.g Binance), signal generation and backtesting.
+2. **backtest.ipynb**: Example notebook for running backtest and plotting with sample data.
 
 ## Strategy Overview
 
@@ -41,7 +41,7 @@ Upon entering a trade, beta and alpha parameters are fixed for the trade duratio
 
 ## Backtest Results (fees included)
 
-- **Traded Pairs**:  
+- **Backtested Pairs**:  
   - **ETH / SOL**  
   - **ETH / UNI**
  
@@ -49,14 +49,18 @@ Upon entering a trade, beta and alpha parameters are fixed for the trade duratio
 ![Backtest Plot - ETH-SOL](plots/backtest_ETH_SOL.png)
 ![Backtest Plot - ETH-UNI](plots/backtest_ETH_UNI.png)
 
-    
-![Backtest Plot - Period 1](backtests/period_2.png)
-
 ## Live trading results:
 - **Traded Pairs**:  
   - **ETH / UNI (14.06.2025 - 15.07.25 - closed as reverted)**
 
-![PnL](plots/PnL.png)
+![PnL](plots/pnl_plot.png)
+
+## TODO:
+
+1. Develop a pair selection strategy based on stationarity tests. Plan to apply the Augmented Dickey-Fuller (ADF) test and Phillips-Perron (PP) test, with a focus on PP due to its robustness in handling heteroskedasticity and autocorrelation in the error terms—common issues in financial time series. This approach allows to get more robust and accurate inference.
+
+2. Systematize the strategy for deployment on the Binance exchange to enable automatic trade execution.
+   
   
 
    
