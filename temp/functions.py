@@ -330,8 +330,6 @@ def plot_pair_trading_signals(signal_df, pairs, bounds, all_signals_df):
         ax_mod_spread.legend()
 
     plt.tight_layout()
-    filename = f"plots/signals.png"
-    plt.savefig(filename, bbox_inches='tight')
     plt.show()
 
 import numpy as np
@@ -593,7 +591,5 @@ def plot_cumulative_realized_pnl(all_positions, all_pnl, signal_df, pairs, start
         plt.ylabel('Portfolio Value ($)')
         plt.legend()
         plt.grid(True)
-        filename = f"plots/backtest_{i_sym}_{j_sym}.png"
-        plt.savefig(filename, bbox_inches='tight')
         plt.show()
 
