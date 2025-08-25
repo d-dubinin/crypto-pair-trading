@@ -49,14 +49,11 @@ Upon entering a trade, beta and alpha parameters are fixed for the trade duratio
 ![Backtest Plot - ETH-SOL](plots/backtest_ETH_SOL.png)
 ![Backtest Plot - ETH-UNI](plots/backtest_ETH_UNI.png)
 
-    
-![Backtest Plot - Period 1](backtests/period_2.png)
-
 ## Live trading results:
 - **Traded Pairs**:  
   - **ETH / UNI (14.06.2025 - 15.07.25 - closed as reverted)**
 
-![PnL](plots/PnL.png)
+![PnL](plots/pnl_plot.png)
   
 
    
