@@ -1,67 +1,60 @@
-# Crypto Pair Trading Backtest 
+# Crypto Pairs Trading Strategy
 
-This repository contains Jupyter Notebooks for backtesting a **pair trading strategy** on cryptocurrencies, **including exchange fees**, evaluated over two distinct time periods. 
-
-## Contents
-
-### Backtest Notebooks
-
-1. **`period_1_backtest.ipynb`**
-   - **In-sample period**: 2021-01-01 to 2022-12-31  
-   - **Out-of-sample backtest**: 2023-01-01 to 2024-01-01
-
-2. **`period_2_backtest.ipynb`**
-   - **In-sample period**: 2022-01-01 to 2023-12-31  
-   - **Out-of-sample backtest**: 2024-01-01 to 2025-01-01
-
-Each notebook identifies candidate trading pairs using statistical techniques and evaluates performance with plotted metrics and trade visualizations.
+This repository contains a Python implementation for backtesting a pairs trading strategy based on z-score signals, mean reversion, and stop-loss logic. It includes reusable functions for running the backtest and visualizing cumulative realized portfolio value over time. 
 
 ---
 
+## Feautures
+
+1. Backtest multiple asset pairs with configurable stop-loss, capital allocation, and fees.
+
+2. Dynamic position sizing.
+
+3. Entry and exit logic based on turning points and mean-reversion in z-scores.
+
+4. Tracking of unrealized and realized profit & loss and fees.
+
+5. Plot cumulative portfolio value for each pair.
+
+## Files
+
+1. functions.py: Contains functions to fetch price data from an exchange (e.g Binance), signal generation and backtesting.
+2. Example notebook for running backtest and plotting with sample data.
+
 ## Strategy Overview
 
-The strategy involves identifying and trading mean-reverting crypto pairs based on the following process:
+This strategy trades mean-reverting cryptocurrency pairs using the following approach:
 
-1. **Universe Selection**  
-   A predefined list of cryptocurrencies is used.
+1. **Spread Construction and Z-score Calculation:**
+The spread between two assets is computed over a rolling 90-day window, and its z-score is derived for entry signal generations.
 
-2. **OLS Regression & Filtering**  
-   - For each candidate pair, an OLS regression is performed in the in-sample period.
-   - Pairs with **R² ≥ 0.9** are retained for further analysis.
+2. **Entry Signal Generation:**
+Entry signals are generated based on z-score threshold crossovers, where thresholds are chosen to capture *rare or extreme values* that the z-score reaches. These thresholds are manually selected per pair, focusing on points where the spread significantly deviates from its historical behavior. For example, backtests are performed on pairs like ETH-SOL and ETH-UNI.
 
-3. **Rolling Spread & Stationarity Check**  
-   - A rolling spread is constructed for each selected pair.
-   - The **Augmented Dickey-Fuller (ADF) test** is applied to check for mean-reversion.
-   - Pairs yielding an **ADF p‑value < 0.05** are flagged for further inspection
-   - The selected pairs are visually inspected to assess the behavior and stability of their spreads, confirming their suitability for trading.
+3. **Smoothed Reversion Confirmation:**
+After a signal crossover, the strategy waits for a “smoothed” reversion using an exponentially weighted moving average (EWM). Trades are entered when a change in the derivative of this smoothed z-score indicates a turning point.
 
-4. **Uniqueness Constraint**  
-   - To avoid overlapping exposure, if a coin appears in multiple valid pairs, only the pair with the **lowest ADF statistic** is selected.
+4. **Trade Management and Exit Criteria:**
+Upon entering a trade, beta and alpha parameters are fixed for the trade duration. The strategy exits the trade either when a 3% stop loss on the initial notional is hit or when the “fixed” z-score—calculated using the spread, fixed alpha, beta, and rolling mean and standard deviation from the entry period—signals mean reversion.
 
 ---
 
 ## Backtest Results (fees included)
 
-### Period 1 (2023-01-01 to 2024-01-01)
 - **Traded Pairs**:  
-  - **BTC / DOT**  
-  - **AAVE / UNI**
+  - **ETH / SOL**  
+  - **ETH / UNI**
  
-![Backtest Plot - Period 1](backtests/period_1.png)
+![Backtest Plot - Signals](plots/signals.png)
+![Backtest Plot - ETH-SOL](plots/backtest_ETH_SOL.png)
+![Backtest Plot - ETH-UNI](plots/backtest_ETH_UNI.png)
 
-### Period 2 (2024-01-01 to 2025-01-01)
-- **Traded Pairs**:  
-  - **NEAR / ADA**  
-  - **VET / DOT**
     
 ![Backtest Plot - Period 1](backtests/period_2.png)
 
 ## Live trading results:
 - **Traded Pairs**:  
   - **ETH / UNI (14.06.2025 - 15.07.25 - closed as reverted)**
-![Spread](plots/spread_eth_uni.png)
-   - **AVAX / DOT (17.07.2025 - 28.07.2025 - closed as cointegration broke)**
-![Spread](plots/spread_avax_dot.png)
 
 ![PnL](plots/PnL.png)
   
