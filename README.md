@@ -18,8 +18,8 @@ This repository contains a Python implementation for backtesting a pairs trading
 
 ## Files
 
-1. functions.py: Contains functions to fetch price data from an exchange (e.g Binance), signal generation and backtesting.
-2. Example notebook for running backtest and plotting with sample data.
+1. **functions.py**: Contains functions to fetch price data from an exchange (e.g Binance), signal generation and backtesting.
+2. **backtest.ipynb**: Example notebook for running backtest and plotting with sample data.
 
 ## Strategy Overview
 
@@ -41,7 +41,7 @@ Upon entering a trade, beta and alpha parameters are fixed for the trade duratio
 
 ## Backtest Results (fees included)
 
-- **Traded Pairs**:  
+- **Backtested Pairs**:  
   - **ETH / SOL**  
   - **ETH / UNI**
  
